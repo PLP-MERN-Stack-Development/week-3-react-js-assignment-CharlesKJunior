@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import useLocalStorage from '../hooks/useLocalStorage';
 import Button from './Button';
+import Card from './card';
+import TaskItem from './TaskItem';
 
 /**
- * Custom hook for managing tasks with localStorage persistence
+ * TaskManager component for managing tasks
+ * @returns {JSX.Element} Task manager component
  */
-const useLocalStorageTasks = () => {
-  // Initialize state from localStorage or with empty array
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
-  });
-
-  // Update localStorage when tasks change
-  useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
+const TaskManager = () => {
+  // Use our custom localStorage hook
+  const [tasks, setTasks] = useLocalStorage('tasks', []);
+  const [newTaskText, setNewTaskText] = useState('');
+  const [filter, setFilter] = useState('all');
 
   // Add a new task
   const addTask = (text) => {
@@ -45,17 +43,6 @@ const useLocalStorageTasks = () => {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
-  return { tasks, addTask, toggleTask, deleteTask };
-};
-
-/**
- * TaskManager component for managing tasks
- */
-const TaskManager = () => {
-  const { tasks, addTask, toggleTask, deleteTask } = useLocalStorageTasks();
-  const [newTaskText, setNewTaskText] = useState('');
-  const [filter, setFilter] = useState('all');
-
   // Filter tasks based on selected filter
   const filteredTasks = tasks.filter((task) => {
     if (filter === 'active') return !task.completed;
@@ -71,8 +58,8 @@ const TaskManager = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold mb-6">Task Manager</h2>
+    <Card className="p-6">
+      <h2 className="text-2xl font-bold mb-6 dark:text-white">Task Manager</h2>
 
       {/* Task input form */}
       <form onSubmit={handleSubmit} className="mb-6">
@@ -82,7 +69,7 @@ const TaskManager = () => {
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
             placeholder="Add a new task..."
-            className="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+            className="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
           <Button type="submit" variant="primary">
             Add Task
@@ -116,53 +103,32 @@ const TaskManager = () => {
       </div>
 
       {/* Task list */}
-      <ul className="space-y-2">
+      <div className="space-y-2">
         {filteredTasks.length === 0 ? (
-          <li className="text-gray-500 dark:text-gray-400 text-center py-4">
+          <div className="text-gray-500 dark:text-gray-400 text-center py-4">
             No tasks found
-          </li>
+          </div>
         ) : (
           filteredTasks.map((task) => (
-            <li
+            <TaskItem
               key={task.id}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700"
-            >
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={task.completed}
-                  onChange={() => toggleTask(task.id)}
-                  className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <span
-                  className={`${
-                    task.completed ? 'line-through text-gray-500 dark:text-gray-400' : ''
-                  }`}
-                >
-                  {task.text}
-                </span>
-              </div>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => deleteTask(task.id)}
-                aria-label="Delete task"
-              >
-                Delete
-              </Button>
-            </li>
+              task={task}
+              onToggle={toggleTask}
+              onDelete={deleteTask}
+            />
           ))
         )}
-      </ul>
+      </div>
 
       {/* Task stats */}
       <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
         <p>
           {tasks.filter((task) => !task.completed).length} tasks remaining
         </p>
+        <p>Total tasks: {tasks.length}</p>
       </div>
-    </div>
+    </Card>
   );
 };
 
-export default TaskManager; 
+export default TaskManager;

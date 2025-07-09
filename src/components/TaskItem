@@ -1,0 +1,62 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import Button from './Button';
+
+/**
+ * Task item component for displaying individual tasks
+ * @param {Object} props - Component props
+ * @param {Object} props.task - Task object
+ * @param {function} props.onToggle - Toggle completion handler
+ * @param {function} props.onDelete - Delete handler
+ * @param {string} props.className - Additional classes
+ * @returns {JSX.Element} - TaskItem component
+ */
+const TaskItem = ({ 
+  task, 
+  onToggle, 
+  onDelete,
+  className = '',
+  ...rest 
+}) => {
+  return (
+    <div 
+      className={`flex items-center justify-between p-4 ${task.completed ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'} border-b border-gray-200 dark:border-gray-700 ${className}`}
+      {...rest}
+    >
+      <div className="flex items-center space-x-3">
+        <input
+          type="checkbox"
+          checked={task.completed}
+          onChange={() => onToggle(task.id)}
+          className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800"
+        />
+        <span 
+          className={`${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
+        >
+          {task.text}
+        </span>
+      </div>
+      <Button
+        variant="danger"
+        size="sm"
+        onClick={() => onDelete(task.id)}
+        aria-label={`Delete task: ${task.text}`}
+      >
+        Delete
+      </Button>
+    </div>
+  );
+};
+
+TaskItem.propTypes = {
+  task: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    text: PropTypes.string.isRequired,
+    completed: PropTypes.bool.isRequired,
+  }).isRequired,
+  onToggle: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  className: PropTypes.string,
+};
+
+export default TaskItem;
